@@ -4,23 +4,28 @@ import tensorflow as tf
 import numpy as np
 import cv2
 import av
+import time
 
 from streamlit_webrtc import webrtc_streamer
 
 st.set_page_config(
-    page_title="Emotion.exe",
-    page_icon="💿",
+    page_title="NEURO//SCAN",
+    page_icon="🔮",
     layout="wide"
 )
 
-# WINDOWS XP / Y2K STYLING
+# ==============================
+# CYBERPUNK UI
+# ==============================
+
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 .stApp {
-    background: linear-gradient(145deg, #1675c9, #75b9ed);
-    font-family: Tahoma, sans-serif;
+    background: #080810;
+    color: #e9e9ff;
+    font-family: 'Rajdhani', sans-serif;
 }
 
 header, footer, #MainMenu {
@@ -28,134 +33,140 @@ header, footer, #MainMenu {
 }
 
 .block-container {
-    max-width: 1050px;
+    max-width: 1150px;
     padding-top: 2rem;
     padding-bottom: 5rem;
 }
 
-/* Main XP window */
-.xp-window {
-    background: #ece9d8;
-    border: 2px solid #ffffff;
-    border-radius: 9px 9px 3px 3px;
-    box-shadow: 5px 7px 18px #123b6570;
-    padding: 4px;
-    margin-bottom: 18px;
+h1, h2, h3 {
+    font-family: 'Orbitron', sans-serif !important;
+    letter-spacing: 2px;
 }
 
-/* Blue title bar */
-.xp-titlebar {
-    background: linear-gradient(
-        to bottom,
-        #3b8eea 0%,
-        #1266c5 45%,
-        #0054b8 50%,
-        #267ee5 100%
-    );
-    color: white;
-    padding: 10px 14px;
-    border-radius: 6px 6px 0 0;
-    font-weight: bold;
-    font-size: 17px;
-    text-shadow: 1px 1px #174477;
-    display: flex;
-    justify-content: space-between;
-}
-
-.xp-content {
-    background: #ece9d8;
-    padding: 20px;
-    color: #222;
-}
-
-/* Retro heading */
 h1 {
-    color: #073c80 !important;
-    font-family: 'VT323', monospace !important;
-    font-size: 48px !important;
-    text-align: center;
+    color: #ff2bd6 !important;
+    text-shadow: 0 0 12px #ff2bd688;
+    font-size: 42px !important;
 }
 
 h2, h3 {
-    color: #164b8a !important;
+    color: #00f5ff !important;
 }
 
-/* XP buttons */
-.stButton button {
-    background: linear-gradient(#69b8ff, #1976d2) !important;
-    color: white !important;
-    border: 2px solid white !important;
-    border-radius: 5px !important;
-    font-weight: bold !important;
-    box-shadow: 1px 2px 4px #777;
+p, label {
+    color: #c4c4dd !important;
+    font-size: 17px;
 }
 
-.stButton button:hover {
-    background: linear-gradient(#8dccff, #2586e8) !important;
+/* Main header */
+.cyber-header {
+    background: linear-gradient(120deg, #121225, #1b102b);
+    border: 1px solid #ff2bd6;
+    border-left: 5px solid #ff2bd6;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 20px #ff2bd622;
+}
+
+.cyber-subtitle {
+    color: #00f5ff;
+    letter-spacing: 4px;
+    font-size: 13px;
 }
 
 /* Panels */
+.cyber-panel {
+    background: #11111e;
+    border: 1px solid #292944;
+    border-top: 2px solid #00f5ff;
+    padding: 20px;
+    margin: 18px 0;
+    box-shadow: 0 0 15px #00f5ff12;
+}
+
+.cyber-panel-title {
+    font-family: 'Orbitron', sans-serif;
+    color: #00f5ff;
+    font-size: 15px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #30304a;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+}
+
+/* Streamlit buttons */
+.stButton button {
+    background: #ff2bd6 !important;
+    color: #080810 !important;
+    border: 1px solid #ff2bd6 !important;
+    border-radius: 2px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: bold !important;
+    box-shadow: 0 0 15px #ff2bd655;
+}
+
+.stButton button:hover {
+    background: #00f5ff !important;
+    border-color: #00f5ff !important;
+    box-shadow: 0 0 20px #00f5ff77;
+}
+
+/* Metrics */
 [data-testid="stMetric"] {
-    background: #ffffff;
-    border: 1px solid #a4a4a4;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: inset 1px 1px 3px #ddd;
+    background: #151526;
+    border: 1px solid #30304a;
+    padding: 16px;
+    border-radius: 3px;
 }
 
-/* Info boxes */
+[data-testid="stMetricLabel"] {
+    color: #00f5ff !important;
+    font-family: 'Orbitron', sans-serif;
+}
+
+[data-testid="stMetricValue"] {
+    color: #ff2bd6 !important;
+}
+
+/* Alerts */
 .stAlert {
-    border-radius: 4px;
+    background: #151526;
+    border: 1px solid #00f5ff;
 }
 
-/* Text */
-p, label {
-    color: #252525;
+/* Webcam controls */
+[data-testid="stWebRtcPlayer"] {
+    border: 1px solid #ff2bd6;
+    box-shadow: 0 0 20px #ff2bd622;
 }
 
-/* Bottom taskbar */
-.xp-taskbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 38px;
-    background: linear-gradient(
-        to bottom,
-        #3c91ed,
-        #0759b8
-    );
-    border-top: 2px solid #8bc4ff;
-    color: white;
-    display: flex;
-    align-items: center;
-    padding-left: 15px;
-    z-index: 999;
-    font-size: 13px;
-    font-weight: bold;
-}
-
-.xp-start {
-    background: linear-gradient(#73d66b, #168b24);
-    border: 1px solid #b5f2a4;
-    border-radius: 5px 12px 12px 5px;
-    padding: 5px 18px;
-    margin-right: 12px;
-    color: white;
-    font-weight: bold;
-}
-
-.xp-footer {
-    text-align: center;
-    color: #164b8a;
+/* Status text */
+.status {
+    color: #00ff9c;
+    font-family: 'Orbitron', sans-serif;
     font-size: 12px;
-    padding: 10px;
+    letter-spacing: 2px;
 }
+
+/* Footer */
+.cyber-footer {
+    text-align: center;
+    border-top: 1px solid #30304a;
+    padding: 20px;
+    color: #666680;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 
-# LOAD CNN MODEL
+# ==============================
+# LOAD MODEL
+# ==============================
+
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model("emotion_detector.keras")
@@ -173,26 +184,42 @@ face_detector = cv2.CascadeClassifier(
 )
 
 
-# WINDOWS XP HEADER
+# ==============================
+# HEADER
+# ==============================
+
 st.markdown("""
-<div class="xp-window">
-    <div class="xp-titlebar">
-        <span>💿 Emotion.exe - Facial Recognition System</span>
-        <span>_　□　✕</span>
+<div class="cyber-header">
+    <div class="cyber-subtitle">
+        NEO-TOKYO // ARTIFICIAL INTELLIGENCE DIVISION
     </div>
-    <div class="xp-content">
-        <h1>EMOTION DETECTOR</h1>
-        <p style="text-align:center;">
-            Welcome to Emotion.exe
-            <br>
-            Artificial Intelligence Facial Expression Recognition
-        </p>
-    </div>
+    <h1>NEURO//SCAN</h1>
+    <p>REAL-TIME FACIAL EXPRESSION RECOGNITION SYSTEM</p>
+    <div class="status">● SYSTEM INITIALIZED // CNN MODEL ONLINE</div>
 </div>
 """, unsafe_allow_html=True)
 
 
-# WEBCAM PROCESSING
+# ==============================
+# SYSTEM INFORMATION
+# ==============================
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("AI MODEL", "CNN")
+
+with col2:
+    st.metric("DATASET", "FER-2013")
+
+with col3:
+    st.metric("INPUT", "48 × 48 PX")
+
+
+# ==============================
+# FACE DETECTION
+# ==============================
+
 def video_frame_callback(frame):
 
     img = frame.to_ndarray(format="bgr24")
@@ -220,19 +247,22 @@ def video_frame_callback(frame):
         emotion = EMOTIONS[index]
         confidence = float(predictions[index]) * 100
 
-        # XP green face detection box
+        # Neon cyan face box
         cv2.rectangle(
-            img, (x, y), (x+w, y+h),
-            (0, 255, 0), 2
+            img,
+            (x, y),
+            (x+w, y+h),
+            (255, 245, 0),
+            2
         )
 
-        label = f"{emotion} | {confidence:.1f}%"
+        label = f"{emotion.upper()} // {confidence:.1f}%"
 
         cv2.rectangle(
             img,
-            (x, max(0, y-32)),
+            (x, max(0, y-35)),
             (x+w, y),
-            (0, 160, 0),
+            (180, 0, 180),
             -1
         )
 
@@ -247,22 +277,28 @@ def video_frame_callback(frame):
         )
 
     return av.VideoFrame.from_ndarray(
-        img, format="bgr24"
+        img,
+        format="bgr24"
     )
 
 
-# WEBCAM WINDOW
+# ==============================
+# LIVE CAMERA
+# ==============================
+
 st.markdown("""
-<div class="xp-titlebar">
-    📷 Live Camera Preview
-    <span>● LIVE SYSTEM</span>
+<div class="cyber-panel">
+    <div class="cyber-panel-title">
+        ◈ LIVE SURVEILLANCE FEED
+    </div>
+    <div class="status">
+        CAMERA INPUT // AWAITING CONNECTION
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.info("📀 Camera ready. Press START to begin facial analysis.")
-
 webrtc_streamer(
-    key="emotion-detector",
+    key="neuro-scan",
     video_frame_callback=video_frame_callback,
     rtc_configuration={
         "iceServers": [
@@ -277,31 +313,33 @@ webrtc_streamer(
 )
 
 
-# INFORMATION PANEL
+# ==============================
+# MODEL INFORMATION
+# ==============================
+
 st.markdown("""
-<div class="xp-window">
-    <div class="xp-titlebar">
-        🖥️ System Information
+<div class="cyber-panel">
+    <div class="cyber-panel-title">
+        ◈ NEURAL NETWORK SPECIFICATIONS
     </div>
-    <div class="xp-content">
-        <b>Application:</b> Emotion.exe<br>
-        <b>AI Architecture:</b> Convolutional Neural Network<br>
-        <b>Dataset:</b> FER-2013<br>
-        <b>Input Resolution:</b> 48 × 48 Grayscale<br>
-        <b>Face Detection:</b> OpenCV Haar Cascade<br>
-        <b>Processing:</b> Real-Time
-    </div>
+    <p>ARCHITECTURE: CONVOLUTIONAL NEURAL NETWORK</p>
+    <p>TRAINING DATA: FER-2013</p>
+    <p>FACE DETECTION: OPENCV HAAR CASCADE</p>
+    <p>IMAGE PROCESSING: GRAYSCALE / 48 × 48</p>
+    <p>OUTPUT CLASSES: 07 FACIAL EXPRESSIONS</p>
+    <div class="status">● NEURAL ENGINE READY</div>
 </div>
 """, unsafe_allow_html=True)
 
 
-# BOTTOM TASKBAR
+# ==============================
+# FOOTER
+# ==============================
+
 st.markdown("""
-<div class="xp-taskbar">
-    <span class="xp-start">⊞ START</span>
-    💿 Emotion.exe
-    <span style="margin-left:auto;margin-right:20px;">
-        SYSTEM ONLINE
-    </span>
+<div class="cyber-footer">
+    NEURO//SCAN © 2026
+    <br><br>
+    BUILT WITH TENSORFLOW // OPENCV // PYTHON
 </div>
 """, unsafe_allow_html=True)
